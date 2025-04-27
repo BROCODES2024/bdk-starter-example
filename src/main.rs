@@ -1,5 +1,3 @@
-// Detailed documentation for this code can be found at https://bitcoindevkit.github.io/book-of-bdk/cookbook/starter-example/
-
 use bdk_esplora::esplora_client;
 use bdk_esplora::esplora_client::Builder;
 use bdk_esplora::EsploraExt;
@@ -17,12 +15,8 @@ const DB_PATH: &str = "starter.sqlite3";
 
 fn main() {
     println!("\nWelcome to the Book of BDK Starter Example Wallet!");
-    // --8<-- [start:descriptors]
     let descriptor: &str = "tr([fingerprint/86'/1'/0']zprvYOUR_PRIVATE_KEY/0/*)#checksum";
     let change_descriptor: &str = "tr([fingerprint/86'/1'/0']zprvYOUR_PRIVATE_KEY/1/*)#checksum";
-    // --8<-- [end:descriptors]
-
-    // --8<-- [start:wallet]
     // Initiate the connection to the database
     let mut conn = Connection::open(DB_PATH).expect("Can't open database");
 
@@ -30,7 +24,7 @@ fn main() {
     let wallet_opt = Wallet::load()
         .descriptor(KeychainKind::External, Some(descriptor))
         .descriptor(KeychainKind::Internal, Some(change_descriptor))
-        .extract_keys() // uncomment this line when using private descriptors
+        .extract_keys() 
         .check_network(Network::Signet)
         .load_wallet(&mut conn)
         .unwrap();
@@ -43,9 +37,6 @@ fn main() {
             .create_wallet(&mut conn)
             .unwrap()
     };
-    // --8<-- [end:wallet]
-
-    // --8<-- [start:client]
     // Sync the wallet
     let client: esplora_client::BlockingClient =
         Builder::new("https://blockstream.info/signet/api/").build_blocking();
@@ -61,9 +52,6 @@ fn main() {
 
     let balance = wallet.balance();
     println!("Wallet balance: {} sat", balance.total().to_sat());
-    // --8<-- [end:client]
-
-    // --8<-- [start:address]
     if balance.total().to_sat() < 5000 {
         println!("Your wallet does not have sufficient balance for the following steps!");
         // Reveal a new address from your external keychain
@@ -75,9 +63,6 @@ fn main() {
         wallet.persist(&mut conn).expect("Cannot persist");
         exit(0)
     }
-    // --8<-- [end:address]
-
-    // --8<-- [start:recipient]
     // Use a faucet return address
     let faucet_address =
         Address::from_str("tb1p4tp4l6glyr2gs94neqcpr5gha7344nfyznfkc8szkreflscsdkgqsdent4")
@@ -86,8 +71,6 @@ fn main() {
             .unwrap();
 
     let send_amount: Amount = Amount::from_sat(4000);
-    // --8<-- [end:recipient]
-    // --8<-- [start:transaction]
     let mut builder = wallet.build_tx();
     builder
     .fee_rate(FeeRate::from_sat_per_vb(4).unwrap())
@@ -101,5 +84,4 @@ fn main() {
     let tx = psbt.extract_tx().unwrap();
     client.broadcast(&tx).unwrap();
     println!("Transaction broadcast! Txid: {}", tx.compute_txid());
-    // --8<-- [end:transaction]
 }
